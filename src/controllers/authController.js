@@ -39,13 +39,20 @@ exports.login = async (req, res) => {
         userId: user.id,
         username: user.username,
     });
+
+    user.update({ status: "active" });
+
     return res.status(200).json({
         accessToken,
         refreshToken,
         userInfo: {
             ...user.dataValues,
-            'password': undefined,
-        }
-
-    })
+            password: undefined,
+            status: undefined,
+            role: undefined,
+            createdAt: undefined,
+            updatedAt: undefined,
+            id: undefined,
+        },
+    });
 }

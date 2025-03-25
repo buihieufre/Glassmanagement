@@ -15,6 +15,14 @@ const User = sequelize.define("User", {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    role: {
+        type: DataTypes.ENUM("user", "staff"),
+        defaultValue: "user",
+    },
+    status: {
+        type: DataTypes.ENUM("active", "inactive"),
+        defaultValue: "active",
+    },
 });
 
 // Đồng bộ model với database (tạo bảng nếu chưa có)
