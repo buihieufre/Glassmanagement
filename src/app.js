@@ -1,5 +1,5 @@
 const express = require('express')
-const apiRoutes = require("./routes/apiRoutes");
+const apiRoutes = require("./routes/index");
 const app = express();
 const port = 8000;
 const dotenv = require("dotenv");

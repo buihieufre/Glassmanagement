@@ -21,15 +21,15 @@ exports.signup = async (req, res) => {
 }
 
 exports.login = async (req, res) => {
-    const {email, password} = req.body
-    const count = await User.count({where: {email: email}})
-    if(count === 0){
-        return res.status(400).json({message: 'Email does not exist on system'})
+    const { email, password } = req.body;
+    const count = await User.count({ where: { email: email } });
+    if (count === 0) {
+        return res.status(400).json({ message: "Email does not exist on system" });
     }
-    const user = await User.findOne({where: {email: email}})
-    const isMatch = await comparePassword(password, user.password)
-    if(!isMatch){
-        return res.status(400).json({message: 'Password is incorrect'})
+    const user = await User.findOne({ where: { email: email } });
+    const isMatch = await comparePassword(password, user.password);
+    if (!isMatch) {
+        return res.status(400).json({ message: "Password is incorrect" });
     }
     const accessToken = jwtHelper.generateAccessToken({
         userId: user.id,
@@ -52,7 +52,17 @@ exports.login = async (req, res) => {
             role: undefined,
             createdAt: undefined,
             updatedAt: undefined,
-            id: undefined,
         },
     });
-}
+};
+
+exports.logout = async (req, res) => {
+    try {
+        const userId = req.id;
+        User.update({ status: "inactive" }, { where: { id: userId } });
+        return res.status(200).json({ message: "Logout successfully" });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
