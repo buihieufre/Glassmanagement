@@ -3,6 +3,35 @@ exports.getAllProduct = async (req, res) => {
     const products = await Product.findAll()
     res.json(products)
 }
+Product.sequelize.fn()
+exports.getFilterOption = async (req, res) => {
+    try {
+        const [categories, materials, styles, genders] = await Promise.all([
+            Product.findAll({
+                attributes: [[Product.sequelize.fn('DISTINCT', Product.sequelize.col('category')), 'category']],
+            }),
+            Product.findAll({
+                attributes: [[Product.sequelize.fn('DISTINCT', Product.sequelize.col('material')), 'material']],
+            }),
+            Product.findAll({
+                attributes: [[Product.sequelize.fn('DISTINCT', Product.sequelize.col('style')), 'style']],
+            }),
+            Product.findAll({
+                attributes: [[Product.sequelize.fn('DISTINCT', Product.sequelize.col('gender')), 'gender']],
+            }),
+        ]);
+        res.json({
+            categories: categories.map((item) => item.category),
+            materials: materials.map((item) => item.material),
+            styles: styles.map((item) => item.style),
+            genders: genders.map((item) => item.gender),
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error fetching filter options", error });
+    }
+};
+
 
 exports.getPaginatedProduct = async (req, res) => {
     const { page, limit, filter } = req.body;
