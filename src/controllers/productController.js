@@ -1,5 +1,6 @@
 const { Op } = require("sequelize");
 const Product = require("../models/productModal");
+const { Cart, CartItem } = require("../models/cartModals"); // Assuming you have a Cart model
 exports.getAllProduct = async (req, res) => {
     const products = await Product.findAll();
     res.json(products);
@@ -89,7 +90,7 @@ exports.getPaginatedProductAdmin = async (req, res) => {
             name: {
                 [Op.like]: `%${searchString}%`,
             },
-        }
+        },
     });
     const totalProducts = productsAll.length;
     const totalPages = Math.ceil(totalProducts / limit);
@@ -102,3 +103,7 @@ exports.getPaginatedProductAdmin = async (req, res) => {
     };
     res.json(result);
 };
+
+// exports.addProduct = async (req, res) => {
+
+// }
