@@ -56,3 +56,30 @@ exports.addToCart = async (req, res) => {
         return res.status(500).json({ message: "Lỗi khi thêm vào giỏ hàng", error });
     }
 };
+
+exports.getCartItems = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        console.log(userId);
+        const cart = await Cart.findOne({ where: { userId } });
+
+        if (!cart) {
+            return res.status(404).json({ message: "Giỏ hàng không tồn tại" });
+        }
+
+        const productIds = await CartItem.findAll({
+            where: { cartId: cart.cartId },
+            attributes: ["productId"],
+        }).then((items) => items.map((item) => item.productId));
+        const productsInCart = await Product.findAll({
+            where: {
+                id: productIds,
+            },
+        });
+
+        return res.status(200).json({ message: "Lấy giỏ hàng thành công", data: productsInCart });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Lỗi khi lấy giỏ hàng", error });
+    }
+};
