@@ -16,8 +16,16 @@ exports.addToCart = async (req, res) => {
                 cartId: cartId
             }})
             if(prod) {
-                prod.quantity+=quantity
-                await prod.save()
+                const newQtt = prod.quantity + quantity;
+                await CartItem.update(
+                    { quantity: newQtt },
+                    {
+                        where: {
+                            productId: productId,
+                            cartId: cartId,
+                        },
+                    }
+                );
             }else {
                 await CartItem.create({
                     cartId: cart.cartId,
