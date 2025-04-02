@@ -6,7 +6,6 @@ exports.addToCart = async (req, res) => {
         const { userId, productId, quantity } = req.body;
 
         const product = await Product.findByPk(productId);
-        console.log(quantity, product.quantity);
         if (quantity > product.quantity) {
             return res.status(400).json({ message: "Không đủ số lượng" });
         }
@@ -22,6 +21,10 @@ exports.addToCart = async (req, res) => {
             });
             if (prod) {
                 const newQtt = prod.quantity + quantity;
+
+                if (newQtt > product.quantity) {
+                    return res.status(400).json({ message: "Không đủ số lượng" });
+                }
                 await CartItem.update(
                     { quantity: newQtt },
                     {
@@ -81,17 +84,26 @@ exports.getCartItems = async (req, res) => {
             return res.status(404).json({ message: "Giỏ hàng không tồn tại" });
         }
 
-        const productIds = await CartItem.findAll({
+        const cartItems = await CartItem.findAll({
             where: { cartId: cart.cartId },
-            attributes: ["productId"],
-        }).then((items) => items.map((item) => item.productId));
-        const productsInCart = await Product.findAll({
-            where: {
-                id: productIds,
-            },
-        });
+            attributes: ["productId", "quantity"],
+        }).then((items) => items.map((item) => ({ id: item.productId, quantity: item.quantity })));
 
-        return res.status(200).json({ message: "Lấy giỏ hàng thành công", data: productsInCart });
+        const result = await Promise.all(
+            cartItems.map(async (item) => {
+                const prod = await Product.findOne({ where: { id: item.id } });
+                const prodImage = prod.images.split(",")[0];
+                return {
+                    ...item,
+                    image: prodImage,
+                    color_mapping: prod.color_mapping,
+                    price: prod.price,
+                    name: prod.name,
+                    quantityInStock: prod.quantity,
+                };
+            })
+        );
+        return res.status(200).json({ message: "Lấy giỏ hàng thành công", data: result });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: "Lỗi khi lấy giỏ hàng", error });
@@ -150,7 +162,10 @@ exports.updateQuantity = async (req, res) => {
                     .status(200)
                     .json({ message: "Không thể thêm nữa vì đã vượt quá số lượng hàng trong kho" });
             } else {
-                await cartItem.update({ quantity: quantity });
+                await CartItem.update(
+                    { quantity: quantity },
+                    { where: { cartId: cart.cartId, productId } }
+                );
                 return res.status(200);
             }
         } else {
@@ -161,4 +176,12 @@ exports.updateQuantity = async (req, res) => {
         console.error("Lỗi khi update quantity");
         return res.status(500).json({ message: "Server error" });
     }
-}; 
+}
+
+// exports.getTotalAmount = async (req, res) => {
+//     try {
+        
+//     } catch (error) {
+        
+//     }
+// }
